@@ -22,3 +22,5 @@ draft-skokan-httpbis-message-signatures-ml-dsa.xml
 package-lock.json
 report.xml
 !requirements.txt
+!examples
+!examples/**/*

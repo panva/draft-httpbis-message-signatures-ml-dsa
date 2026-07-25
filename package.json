@@ -1,0 +1,14 @@
+{
+  "name": "draft-httpbis-message-signatures-ml-dsa",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.7.0"
+  },
+  "dependencies": {},
+  "scripts": {
+    "update": "node --no-warnings scripts/generate.mjs",
+    "force-update": "node --no-warnings scripts/generate.mjs --force",
+    "test": "node --no-warnings scripts/verify.mjs"
+  }
+}

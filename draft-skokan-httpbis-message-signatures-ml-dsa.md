@@ -19,35 +19,36 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
-category: info
+title: "Use of ML-DSA in HTTP Message Signatures"
+abbrev: "ML-DSA in HTTP Message Signatures"
+category: std
 
-docname: draft-todo-yourname-protocol-latest
-submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
+docname: draft-skokan-httpbis-message-signatures-ml-dsa-latest
+submissiontype: IETF
 number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: "Web and Internet Transport"
+workgroup: "HTTP"
 keyword:
- - next generation
- - unicorn
- - AI-native
+ - http
+ - signatures
+ - ml-dsa
+ - post-quantum
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "HTTP"
+  type: "Working Group"
+  mail: "ietf-http-wg@w3.org"
+  arch: "https://lists.w3.org/Archives/Public/ietf-http-wg/"
+  github: "panva/draft-httpbis-message-signatures-ml-dsa"
+  latest: "https://panva.github.io/draft-httpbis-message-signatures-ml-dsa/draft-skokan-httpbis-message-signatures-ml-dsa.html"
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    fullname: Filip Skokan
+    organization: Okta
+    email: panva.ip@gmail.com
 
 normative:
 

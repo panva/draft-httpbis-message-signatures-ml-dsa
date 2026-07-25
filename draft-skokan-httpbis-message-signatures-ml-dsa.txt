@@ -2,14 +2,14 @@
 
 
 
-WG Working Group                                              Y. N. Here
-Internet-Draft                                    Your Organization Here
-Intended status: Informational                              25 July 2026
+HTTP                                                           F. Skokan
+Internet-Draft                                                      Okta
+Intended status: Standards Track                            25 July 2026
 Expires: 26 January 2027
 
 
-                           TODO - Your title
-                  draft-todo-yourname-protocol-latest
+                Use of ML-DSA in HTTP Message Signatures
+         draft-skokan-httpbis-message-signatures-ml-dsa-latest
 
 Abstract
 
@@ -20,16 +20,18 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at
-   https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
-   protocol/.
+   https://panva.github.io/draft-httpbis-message-signatures-ml-dsa/
+   draft-skokan-httpbis-message-signatures-ml-dsa.html.  Status
+   information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-skokan-httpbis-message-
+   signatures-ml-dsa/.
 
-   Discussion of this document takes place on the WG Working Group
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
+   Discussion of this document takes place on the HTTP Working Group
+   mailing list (mailto:ietf-http-wg@w3.org), which is archived at
+   https://lists.w3.org/Archives/Public/ietf-http-wg/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/USER/REPO.
+   https://github.com/panva/draft-httpbis-message-signatures-ml-dsa.
 
 Status of This Memo
 
@@ -109,6 +111,6 @@ Acknowledgments
 
 Author's Address
 
-   Your Name Here
-   Your Organization Here
-   Email: your.email@example.com
+   Filip Skokan
+   Okta
+   Email: panva.ip@gmail.com

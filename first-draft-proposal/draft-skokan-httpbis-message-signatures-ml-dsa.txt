@@ -1,0 +1,1250 @@
+
+
+
+
+HTTP                                                           F. Skokan
+Internet-Draft                                                      Okta
+Intended status: Standards Track                            25 July 2026
+Expires: 26 January 2027
+
+
+                Use of ML-DSA in HTTP Message Signatures
+         draft-skokan-httpbis-message-signatures-ml-dsa-latest
+
+Abstract
+
+   This document registers algorithm identifiers for the Module-Lattice-
+   Based Digital Signature Algorithm (ML-DSA) in the "HTTP Signature
+   Algorithms" registry, and defines the HTTP_SIGN and HTTP_VERIFY
+   primitive functions for them.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://panva.github.io/draft-httpbis-message-signatures-ml-dsa/
+   draft-skokan-httpbis-message-signatures-ml-dsa.html.  Status
+   information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-skokan-httpbis-message-
+   signatures-ml-dsa/.
+
+   Discussion of this document takes place on the HTTP Working Group
+   mailing list (mailto:ietf-http-wg@w3.org), which is archived at
+   https://lists.w3.org/Archives/Public/ietf-http-wg/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/panva/draft-httpbis-message-signatures-ml-dsa.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 26 January 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+     1.1.  Scope
+   2.  Conventions and Definitions
+   3.  ML-DSA Signature Algorithms
+     3.1.  ML-DSA-44
+     3.2.  ML-DSA-65
+     3.3.  ML-DSA-87
+   4.  Signature Size Considerations
+   5.  Security Considerations
+     5.1.  Rationale for Not Supporting HashML-DSA
+     5.2.  Rationale for the Empty Context String
+     5.3.  Deterministic and Randomized Signing
+     5.4.  Algorithm Downgrade During Migration
+     5.5.  Binding of the Public Key
+   6.  IANA Considerations
+     6.1.  HTTP Signature Algorithms Registry
+   7.  References
+     7.1.  Normative References
+     7.2.  Informative References
+   Appendix A.  Test Vectors
+     A.1.  Example Request
+     A.2.  Example Keys
+       A.2.1.  ML-DSA-44 Test Key
+       A.2.2.  ML-DSA-65 Test Key
+       A.2.3.  ML-DSA-87 Test Key
+     A.3.  Test Cases
+       A.3.1.  Signing a Request Using ml-dsa-44
+       A.3.2.  Signing a Request Using ml-dsa-65
+       A.3.3.  Signing a Request Using ml-dsa-87
+   Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   The Module-Lattice-Based Digital Signature Algorithm (ML-DSA)
+   [FIPS204] is a signature scheme believed to resist an adversary in
+   possession of a Cryptographically Relevant Quantum Computer (CRQC).
+
+   HTTP Message Signatures [RFC9421] establishes the "HTTP Signature
+   Algorithms" registry (Section 6.2 of [RFC9421]).  Every digital
+   signature algorithm in its initial contents rests on integer
+   factorization or on the discrete logarithm problem, so none of them
+   resists a CRQC.
+
+   [RFC9964] registers ML-DSA identifiers for JOSE and COSE, but those
+   cannot be reused here.  Section 3.3.7 of [RFC9421] states that JSON
+   Web Algorithm values "are not registered in the 'HTTP Signature
+   Algorithms' registry (Section 6.2), and so the explicit alg signature
+   parameter is not used at all when using JOSE signing algorithms".  A
+   signer using ML-DSA therefore has no way to name the algorithm in the
+   alg signature parameter (Section 2.3 of [RFC9421]), and a verifier
+   has no way to request it in the Accept-Signature field (Section 5 of
+   [RFC9421]).
+
+   This document registers three ML-DSA algorithm identifiers and
+   defines the HTTP_SIGN and HTTP_VERIFY primitive functions
+   (Section 3.3 of [RFC9421]) for each.
+
+1.1.  Scope
+
+   This document defines algorithm identifiers and the signing and
+   verification procedures they denote.  It does not define key formats,
+   key discovery or distribution mechanisms, or policy for when an
+   application selects ML-DSA.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   ML-DSA-44, ML-DSA-65, and ML-DSA-87 refer to ML-DSA with the
+   parameter choices given in Table 1 of [FIPS204].
+
+3.  ML-DSA Signature Algorithms
+
+   These algorithms use ML-DSA as specified in [FIPS204].  HashML-DSA,
+   the pre-hash variant in Section 5.4 of [FIPS204], is not used; see
+   Section 5.1.
+
+   To sign using these algorithms, the signer applies ML-DSA.Sign
+   (Algorithm 2 of [FIPS204]) with the signer's private signing key and
+   the signature base (Section 2.5 of [RFC9421]) as the message (M).
+   The signature base is taken as the input message with no prehash
+   function.  The context string (ctx) MUST be the empty string.  The
+   resulting signature, encoded as described in Section 7.2 of
+   [FIPS204], is the byte array (S) used as the HTTP message signature
+   output in Section 3.1 of [RFC9421].
+
+   To verify using these algorithms, the verifier applies ML-DSA.Verify
+   (Algorithm 3 of [FIPS204]) using the public key portion of the
+   verification key material and the signature base recreated as
+   described in Section 3.2 of [RFC9421].  The signature base is taken
+   as the input message with no prehash function.  The context string
+   (ctx) MUST be the empty string.  The verifier extracts the HTTP
+   message signature to be verified (S) as described in Section 3.2 of
+   [RFC9421].  The results of the verification function indicate whether
+   the signature presented is valid.
+
+   Implementations MUST pass the signature base to ML-DSA.Sign and ML-
+   DSA.Verify unaltered: they MUST NOT append a trailing newline, alter
+   its line endings, or apply any further encoding.
+
+   A signer SHOULD use the hedged variant of ML-DSA.Sign, the default in
+   [FIPS204], and MAY use the deterministic variant; see Section 5.3.
+
+3.1.  ML-DSA-44
+
+   This algorithm uses the ML-DSA-44 parameter set.  Signatures are 2420
+   bytes.
+
+   The use of this algorithm can be indicated at runtime using the ml-
+   dsa-44 value for the alg signature parameter.
+
+3.2.  ML-DSA-65
+
+   This algorithm uses the ML-DSA-65 parameter set.  Signatures are 3309
+   bytes.
+
+   The use of this algorithm can be indicated at runtime using the ml-
+   dsa-65 value for the alg signature parameter.
+
+3.3.  ML-DSA-87
+
+   This algorithm uses the ML-DSA-87 parameter set.  Signatures are 4627
+   bytes.
+
+   The use of this algorithm can be indicated at runtime using the ml-
+   dsa-87 value for the alg signature parameter.
+
+4.  Signature Size Considerations
+
+   ML-DSA signatures are much larger than those of the algorithms
+   [RFC9421] originally registered.  The Signature field carries a
+   signature as a Structured Fields Byte Sequence, Base64 encoded and
+   delimited by colons, so the encoded value is approximately a third
+   larger than the signature itself.
+
+        +===========+============+================================+
+        | Algorithm | Signature  | Encoded in the Signature field |
+        +===========+============+================================+
+        | ed25519   | 64 bytes   | approximately 90 bytes         |
+        +-----------+------------+--------------------------------+
+        | ml-dsa-44 | 2420 bytes | approximately 3.2 kilobytes    |
+        +-----------+------------+--------------------------------+
+        | ml-dsa-65 | 3309 bytes | approximately 4.4 kilobytes    |
+        +-----------+------------+--------------------------------+
+        | ml-dsa-87 | 4627 bytes | approximately 6.2 kilobytes    |
+        +-----------+------------+--------------------------------+
+
+                   Table 1: Signature sizes by algorithm
+
+   Servers and intermediaries limit how large header fields may be.  Two
+   kinds of limit are common, and both are often set to around 8
+   kilobytes: one on any single field, and one on the request line and
+   all header fields together.
+
+   Under a per-field limit of that size, one ml-dsa-87 signature fits
+   with little room to spare, and two do not fit at all.  Under a
+   combined limit, one ml-dsa-87 signature leaves less than 2 kilobytes
+   for the request line and every other field, including the Signature-
+   Input field that accompanies every signature.  Messages carrying more
+   than one signature (Section 4.3 of [RFC9421]) multiply these figures.
+
+   A signature value differs on every message, so HTTP/2 and HTTP/3
+   header compression does not help: the full value is sent each time.
+   [RFC9958] discusses the operational effects of post-quantum algorithm
+   sizes more generally.
+
+   [[ Editor's note: is ml-dsa-87 worth registering at all?  One
+   signature eats most of an 8 kilobyte limit before anything else is in
+   the message. ]]
+
+5.  Security Considerations
+
+   The security considerations of [RFC9421] and [RFC9881] apply to this
+   document.  [RFC9958] provides general background on the threat posed
+   by CRQCs and on the transition to post-quantum cryptography.
+
+5.1.  Rationale for Not Supporting HashML-DSA
+
+   This document does not define algorithms for HashML-DSA, the pre-hash
+   variant in Section 5.4 of [FIPS204].  ML-DSA and HashML-DSA are
+   incompatible and require different verification routines, so
+   supporting HashML-DSA would mean registering further identifiers.
+
+   Pre-hashing accommodates signers that cannot pass a complete message
+   to the signing module.  The signature base (Section 2.5 of [RFC9421])
+   is built in full before signing begins and is small enough to pass to
+   the signing module directly.
+
+5.2.  Rationale for the Empty Context String
+
+   ML-DSA accepts a context string (ctx) that separates signatures made
+   in different application contexts.  This document fixes it to the
+   empty string, as do other documents that use ML-DSA ([RFC9881],
+   [RFC9882], [RFC9964]).
+
+   In HTTP message signatures that separation comes from the signature
+   base, which covers the signature parameters, including the
+   application-specific tag parameter (Section 2.3 of [RFC9421]); a
+   signature made over one set of parameters does not verify against
+   another.
+
+   Fixing the context string also keeps every parameter of these
+   algorithms determined by this document, as Section 6.2 of [RFC9421]
+   expects of a registered algorithm identifier.
+
+   An application needing cryptographic separation between HTTP message
+   signatures and other uses of the same signing key SHOULD use a
+   separate key for each.
+
+5.3.  Deterministic and Randomized Signing
+
+   ML-DSA permits deterministic and hedged (randomized) signing, hedged
+   being the default in [FIPS204].  Both verify with the same procedure
+   and a verifier cannot tell them apart, so the choice rests with the
+   signer.  Section 3 recommends the hedged variant because mixing in
+   fresh randomness hardens an implementation against fault and side-
+   channel attacks, as Section 9 of [RFC9881] discusses.
+
+   Two hedged signatures over the same signature base with the same key
+   will differ.  A verifier MUST NOT check a signature by re-signing the
+   signature base and comparing the result, as Section 7.3.5 of
+   [RFC9421] warns; the procedure in Section 3 is the only correct one.
+
+5.4.  Algorithm Downgrade During Migration
+
+   During migration to post-quantum algorithms a verifier is likely to
+   accept both ML-DSA and a classical algorithm.  Section 7.3.6 of
+   [RFC9421] describes the downgrade risk that follows: an attacker who
+   can influence algorithm selection can have a verifier accept a
+   signature made with the weaker one.
+
+   A verifier accepting ML-DSA for its resistance to a CRQC gains that
+   resistance only for signatures actually made with ML-DSA.  A verifier
+   SHOULD therefore take the acceptable algorithm from the key material
+   or from configuration rather than from the alg signature parameter,
+   and SHOULD NOT accept a classical algorithm from a signer for which
+   ML-DSA is expected.
+
+5.5.  Binding of the Public Key
+
+   ML-DSA computes the message representative over a hash of the public
+   key, which binds a signature to the key that produced it.  That
+   mitigates the key substitution concerns of Section 7.3.4 of
+   [RFC9421], where a signature is verified under a key other than the
+   signer's.  Verifiers still need to check that the key material and
+   the algorithm both suit the application, as Section 7.3.6 of
+   [RFC9421] notes.
+
+6.  IANA Considerations
+
+6.1.  HTTP Signature Algorithms Registry
+
+   IANA is requested to add the following entries to the "HTTP Signature
+   Algorithms" registry established in Section 6.2 of [RFC9421].
+
+    +================+======================+========+================+
+    | Algorithm Name | Description          | Status | Reference      |
+    +================+======================+========+================+
+    | ml-dsa-44      | ML-DSA using the ML- | Active | Section 3.1 of |
+    |                | DSA-44 parameter set |        | this document  |
+    +----------------+----------------------+--------+----------------+
+    | ml-dsa-65      | ML-DSA using the ML- | Active | Section 3.2 of |
+    |                | DSA-65 parameter set |        | this document  |
+    +----------------+----------------------+--------+----------------+
+    | ml-dsa-87      | ML-DSA using the ML- | Active | Section 3.3 of |
+    |                | DSA-87 parameter set |        | this document  |
+    +----------------+----------------------+--------+----------------+
+
+        Table 2: Additions to the HTTP Signature Algorithms registry
+
+7.  References
+
+7.1.  Normative References
+
+   [FIPS204]  National Institute of Standards and Technology (NIST),
+              "Module-Lattice-Based Digital Signature Standard",
+              NIST FIPS 204, DOI 10.6028/NIST.FIPS.204, August 2024,
+              <https://nvlpubs.nist.gov/nistpubs/FIPS/
+              NIST.FIPS.204.pdf>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9421]  Backman, A., Ed., Richer, J., Ed., and M. Sporny, "HTTP
+              Message Signatures", RFC 9421, DOI 10.17487/RFC9421,
+              February 2024, <https://www.rfc-editor.org/rfc/rfc9421>.
+
+7.2.  Informative References
+
+   [HTTPSIG-PQ]
+              Dreamseeker, S., "Post-Quantum Algorithms for HTTP Message
+              Signatures", <https://c2sp.org/httpsig-pq>.
+
+   [RFC7468]  Josefsson, S. and S. Leonard, "Textual Encodings of PKIX,
+              PKCS, and CMS Structures", RFC 7468, DOI 10.17487/RFC7468,
+              April 2015, <https://www.rfc-editor.org/rfc/rfc7468>.
+
+   [RFC8792]  Watsen, K., Auerswald, E., Farrel, A., and Q. Wu,
+              "Handling Long Lines in Content of Internet-Drafts and
+              RFCs", RFC 8792, DOI 10.17487/RFC8792, June 2020,
+              <https://www.rfc-editor.org/rfc/rfc8792>.
+
+   [RFC9881]  Massimo, J., Kampanakis, P., Turner, S., and B. E.
+              Westerbaan, "Internet X.509 Public Key Infrastructure --
+              Algorithm Identifiers for the Module-Lattice-Based Digital
+              Signature Algorithm (ML-DSA)", RFC 9881,
+              DOI 10.17487/RFC9881, October 2025,
+              <https://www.rfc-editor.org/rfc/rfc9881>.
+
+   [RFC9882]  Salter, B., Raine, A., and D. Van Geest, "Use of the ML-
+              DSA Signature Algorithm in the Cryptographic Message
+              Syntax (CMS)", RFC 9882, DOI 10.17487/RFC9882, October
+              2025, <https://www.rfc-editor.org/rfc/rfc9882>.
+
+   [RFC9958]  Banerjee, A., Reddy.K, T., Schoinianakis, D., Hollebeek,
+              T., and M. Ounsworth, "Post-Quantum Cryptography for
+              Engineers", RFC 9958, DOI 10.17487/RFC9958, June 2026,
+              <https://www.rfc-editor.org/rfc/rfc9958>.
+
+   [RFC9964]  Prorock, M. and O. Steele, "ML-DSA for JSON Object Signing
+              and Encryption (JOSE) and CBOR Object Signing and
+              Encryption (COSE)", RFC 9964, DOI 10.17487/RFC9964, May
+              2026, <https://www.rfc-editor.org/rfc/rfc9964>.
+
+Appendix A.  Test Vectors
+
+   These test vectors are non-normative, and may be used to check an
+   implementation.
+
+   ML-DSA signing is randomized by default; see Section 5.3.  The
+   signature values below are therefore recorded outputs, and an
+   implementation signing the same signature base with the same key will
+   produce a different, equally valid signature.
+
+A.1.  Example Request
+
+   The test cases below sign portions of the following request, the test
+   request used in Appendix B.2 of [RFC9421].
+
+   POST /foo?param=Value&Pet=dog HTTP/1.1
+   Host: example.com
+   Date: Tue, 20 Apr 2021 02:07:55 GMT
+   Content-Type: application/json
+   Content-Length: 18
+
+   {"hello": "world"}
+
+                         Figure 1: The test request
+
+A.2.  Example Keys
+
+   Each key pair is presented in several encodings for convenience.
+   This document does not define a key format; see Section 1.1.
+
+A.2.1.  ML-DSA-44 Test Key
+
+   The following key pair uses the ML-DSA-44 parameter set and is
+   referred to in this appendix as test-key-ml-dsa-44.  The 32-byte seed
+   from which the key pair is derived, in Base64:
+
+   ow9QjhhV5ORaLbpMB3INQPLVmTl7F5tnPDUugwXey5Q=
+
+                     Figure 2: test-key-ml-dsa-44, seed
+
+   The 1312-byte public key, encoded as described in Section 7.2 of
+   [FIPS204], in Base64:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   wqZn1DsCdzzkbpLoq8W1YHI5pPilCv9L2V2C5FJPp6CR/U7TJe7tIpKQdz3DqLOpQNBe\
+   k1eML8h+YFUhlB477VepUTlx66+zJw+lBNlLWjpxxm16RbQFu9vUUlrVZlVd/d5teSvj\
+   YORBOtaEJF9j27s4bgOVxNGXWZ4GL4ynmpQpJ5jTOW4zEBy9//k/zDGglXnp2Oj8jRJB\
+   Mjqv30/T3s6nhWRjd/rPf4KTeyjqCSc/vOUrlVuT5rPVAy+6jp2X/F7IA+NG/oKstNGf\
+   fETTbrNtkGJr/B3vn5OXNTIz16+Kf4Ntw+Cx+Hatk37IDnnjGBwVeBW7JfACzLwrYvch\
+   iWz48wgoVxq3poV5zli/JAzx+YkKh7xusPDt5bjIkV95EQBNjtqokN/JXvmgwbLSY+5V\
+   TY5tNC9RYRBbZcu6/eG4XU1KpnRpGQsyJkcaybJKYQFOTqkrZm9gh9UPFyRyz5cxCuRN\
+   bumhKXaPixTy6EYVExYh7Kl6m513cs84AVsrE5ARPAR7xrZcKqV4CgQPqa9ky+2U5H5Q\
+   tYj+plCu6CgzpIDplBUPIABGx+qcAcuZos9YQK5FBWzG1GnIwJl6FATMXk+4V+SM5Bjw\
+   cRmikw55+kClAELtR4V8jWrGdYedg8WHTQ/pmWaBcsjj8VY81Dk2rkTyGr6FxjvWd0j0\
+   PPg0ssU+0V5jJqwVs5jK8r8Wm5SjctY5l3uH8U0LKccxj8Je6q/HqC/xS3y+2F6Y3red\
+   vvqHt53hNtGUvqHg+kAYdveRj6kwsI0u50ETEzhRZpIn/5OaMSs3Y6XifKFoDNH7lxSa\
+   T7I44b40Ocb8mtUrhQTliAbCiollAbSU2GvutDhEQGyWRvEqM1UjH0TiSTrRN2Gl8WdP\
+   eIUQ2ADLNueFaANCnkTcb2UqY0vr6ADyOsnmJrdEH3zCIss+JIJFbsrNo2BTKv09rSis\
+   Bu9PY+ZBMCfLqaG9dEtxG3FZPMCcT2HXbyOYbk6fXLjaUXGQOethqXrVsqpqGK+e95yA\
+   00ZOc794sRym+FgbwFSPbKKpV27cTaqFVdh0MivTZZYcmZeXRZqgmHY1fcCdq6C7rCLw\
+   zHG6vV36a/eCvzERMBFtV98cV3SPNLPZ0/wup+XvZHo9B+9ODifZpk57cZAifAinPowN\
+   g4+Eucbk5e+WGqzmb6d2r0rY0f/sugxpkyDu8YO7EKMASvF8Z0nG9Rc9OtNzxXMrW7G8\
+   1KQy4wuq3zBNEVlpdLge0VknS5cNBKZgBLiwpQsDqK8jDDO17lnxe3TxgU+nZ9E5m5k/\
+   lkhqVYszNenEIohO/1PWf/FOhZQCLuG8FiAVo/EvsloT5tzYrdZlZdnJCJT8CvNxPPA4\
+   SghyYW7Fs2hBVb8kKyvBTME1meVMLyTuhzlh/F4+HX1GWaTkjVkhDqVC3BWuyw5ftNFs\
+   SXYLv/Re4LjrXe04ICkg/pV36TFOukdEQIoW1suz3QahuGyL59Xu9bJ9e4Fak4KI+WA+\
+   QmTzj3oMTpx0Y2KYPHZYe+NN/lCum6yMBSIBsS3RJXoYRqqTWH4ZY4MjkVCkWKST7Y+T\
+   UzroRJ+8Z2IBEmV/ggz1JcXfvkL4E5oMpNOHuO4xqvng7MFK6iecud+i3e94BckHfYmr\
+   7aYeOsf3X8KfQwrHMW3z0TRm9ZjRQb64y7fxCjgklRu3ClpAuPSmNn2+MtN2VH3DrSwo\
+   GGEr7t3HDFC5Rb0U4wheDaUMHrMwZSqDzcu/DCSGOv5+PK8asA==
+
+                  Figure 3: test-key-ml-dsa-44, public key
+
+   The same key pair in PKCS #8 and SubjectPublicKeyInfo form, using the
+   textual encoding of [RFC7468] with no encryption.  The private key
+   uses the seed representation.
+
+   -----BEGIN PRIVATE KEY-----
+   MDQCAQAwCwYJYIZIAWUDBAMRBCKAIKMPUI4YVeTkWi26TAdyDUDy1Zk5exebZzw1
+   LoMF3suU
+   -----END PRIVATE KEY-----
+
+                   Figure 4: test-key-ml-dsa-44, PKCS #8
+
+   -----BEGIN PUBLIC KEY-----
+   MIIFMjALBglghkgBZQMEAxEDggUhAMKmZ9Q7Anc85G6S6KvFtWByOaT4pQr/S9ld
+   guRST6egkf1O0yXu7SKSkHc9w6izqUDQXpNXjC/IfmBVIZQeO+1XqVE5ceuvsycP
+   pQTZS1o6ccZtekW0Bbvb1FJa1WZVXf3ebXkr42DkQTrWhCRfY9u7OG4DlcTRl1me
+   Bi+Mp5qUKSeY0zluMxAcvf/5P8wxoJV56djo/I0SQTI6r99P097Op4VkY3f6z3+C
+   k3so6gknP7zlK5Vbk+az1QMvuo6dl/xeyAPjRv6CrLTRn3xE026zbZBia/wd75+T
+   lzUyM9evin+DbcPgsfh2rZN+yA554xgcFXgVuyXwAsy8K2L3IYls+PMIKFcat6aF
+   ec5YvyQM8fmJCoe8brDw7eW4yJFfeREATY7aqJDfyV75oMGy0mPuVU2ObTQvUWEQ
+   W2XLuv3huF1NSqZ0aRkLMiZHGsmySmEBTk6pK2ZvYIfVDxckcs+XMQrkTW7poSl2
+   j4sU8uhGFRMWIeypepudd3LPOAFbKxOQETwEe8a2XCqleAoED6mvZMvtlOR+ULWI
+   /qZQrugoM6SA6ZQVDyAARsfqnAHLmaLPWECuRQVsxtRpyMCZehQEzF5PuFfkjOQY
+   8HEZopMOefpApQBC7UeFfI1qxnWHnYPFh00P6ZlmgXLI4/FWPNQ5Nq5E8hq+hcY7
+   1ndI9Dz4NLLFPtFeYyasFbOYyvK/FpuUo3LWOZd7h/FNCynHMY/CXuqvx6gv8Ut8
+   vthemN63nb76h7ed4TbRlL6h4PpAGHb3kY+pMLCNLudBExM4UWaSJ/+TmjErN2Ol
+   4nyhaAzR+5cUmk+yOOG+NDnG/JrVK4UE5YgGwoqJZQG0lNhr7rQ4REBslkbxKjNV
+   Ix9E4kk60TdhpfFnT3iFENgAyzbnhWgDQp5E3G9lKmNL6+gA8jrJ5ia3RB98wiLL
+   PiSCRW7KzaNgUyr9Pa0orAbvT2PmQTAny6mhvXRLcRtxWTzAnE9h128jmG5On1y4
+   2lFxkDnrYal61bKqahivnvecgNNGTnO/eLEcpvhYG8BUj2yiqVdu3E2qhVXYdDIr
+   02WWHJmXl0WaoJh2NX3Anaugu6wi8Mxxur1d+mv3gr8xETARbVffHFd0jzSz2dP8
+   Lqfl72R6PQfvTg4n2aZOe3GQInwIpz6MDYOPhLnG5OXvlhqs5m+ndq9K2NH/7LoM
+   aZMg7vGDuxCjAErxfGdJxvUXPTrTc8VzK1uxvNSkMuMLqt8wTRFZaXS4HtFZJ0uX
+   DQSmYAS4sKULA6ivIwwzte5Z8Xt08YFPp2fROZuZP5ZIalWLMzXpxCKITv9T1n/x
+   ToWUAi7hvBYgFaPxL7JaE+bc2K3WZWXZyQiU/ArzcTzwOEoIcmFuxbNoQVW/JCsr
+   wUzBNZnlTC8k7oc5YfxePh19Rlmk5I1ZIQ6lQtwVrssOX7TRbEl2C7/0XuC4613t
+   OCApIP6Vd+kxTrpHRECKFtbLs90Gobhsi+fV7vWyfXuBWpOCiPlgPkJk8496DE6c
+   dGNimDx2WHvjTf5QrpusjAUiAbEt0SV6GEaqk1h+GWODI5FQpFikk+2Pk1M66ESf
+   vGdiARJlf4IM9SXF375C+BOaDKTTh7juMar54OzBSuonnLnfot3veAXJB32Jq+2m
+   HjrH91/Cn0MKxzFt89E0ZvWY0UG+uMu38Qo4JJUbtwpaQLj0pjZ9vjLTdlR9w60s
+   KBhhK+7dxwxQuUW9FOMIXg2lDB6zMGUqg83Lvwwkhjr+fjyvGrA=
+   -----END PUBLIC KEY-----
+
+             Figure 5: test-key-ml-dsa-44, SubjectPublicKeyInfo
+
+   The same key pair as a JSON Web Key, using the AKP key type defined
+   in Section 3 of [RFC9964]:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   {
+     "kty": "AKP",
+     "alg": "ML-DSA-44",
+     "kid": "test-key-ml-dsa-44",
+     "pub": "wqZn1DsCdzzkbpLoq8W1YHI5pPilCv9L2V2C5FJPp6CR_U7TJe7tIpKQdz\
+       3DqLOpQNBek1eML8h-YFUhlB477VepUTlx66-zJw-lBNlLWjpxxm16RbQFu9vUUl\
+       rVZlVd_d5teSvjYORBOtaEJF9j27s4bgOVxNGXWZ4GL4ynmpQpJ5jTOW4zEBy9__\
+       k_zDGglXnp2Oj8jRJBMjqv30_T3s6nhWRjd_rPf4KTeyjqCSc_vOUrlVuT5rPVAy\
+       -6jp2X_F7IA-NG_oKstNGffETTbrNtkGJr_B3vn5OXNTIz16-Kf4Ntw-Cx-Hatk3\
+       7IDnnjGBwVeBW7JfACzLwrYvchiWz48wgoVxq3poV5zli_JAzx-YkKh7xusPDt5b\
+       jIkV95EQBNjtqokN_JXvmgwbLSY-5VTY5tNC9RYRBbZcu6_eG4XU1KpnRpGQsyJk\
+       caybJKYQFOTqkrZm9gh9UPFyRyz5cxCuRNbumhKXaPixTy6EYVExYh7Kl6m513cs\
+       84AVsrE5ARPAR7xrZcKqV4CgQPqa9ky-2U5H5QtYj-plCu6CgzpIDplBUPIABGx-\
+       qcAcuZos9YQK5FBWzG1GnIwJl6FATMXk-4V-SM5BjwcRmikw55-kClAELtR4V8jW\
+       rGdYedg8WHTQ_pmWaBcsjj8VY81Dk2rkTyGr6FxjvWd0j0PPg0ssU-0V5jJqwVs5\
+       jK8r8Wm5SjctY5l3uH8U0LKccxj8Je6q_HqC_xS3y-2F6Y3redvvqHt53hNtGUvq\
+       Hg-kAYdveRj6kwsI0u50ETEzhRZpIn_5OaMSs3Y6XifKFoDNH7lxSaT7I44b40Oc\
+       b8mtUrhQTliAbCiollAbSU2GvutDhEQGyWRvEqM1UjH0TiSTrRN2Gl8WdPeIUQ2A\
+       DLNueFaANCnkTcb2UqY0vr6ADyOsnmJrdEH3zCIss-JIJFbsrNo2BTKv09rSisBu\
+       9PY-ZBMCfLqaG9dEtxG3FZPMCcT2HXbyOYbk6fXLjaUXGQOethqXrVsqpqGK-e95\
+       yA00ZOc794sRym-FgbwFSPbKKpV27cTaqFVdh0MivTZZYcmZeXRZqgmHY1fcCdq6\
+       C7rCLwzHG6vV36a_eCvzERMBFtV98cV3SPNLPZ0_wup-XvZHo9B-9ODifZpk57cZ\
+       AifAinPowNg4-Eucbk5e-WGqzmb6d2r0rY0f_sugxpkyDu8YO7EKMASvF8Z0nG9R\
+       c9OtNzxXMrW7G81KQy4wuq3zBNEVlpdLge0VknS5cNBKZgBLiwpQsDqK8jDDO17l\
+       nxe3TxgU-nZ9E5m5k_lkhqVYszNenEIohO_1PWf_FOhZQCLuG8FiAVo_EvsloT5t\
+       zYrdZlZdnJCJT8CvNxPPA4SghyYW7Fs2hBVb8kKyvBTME1meVMLyTuhzlh_F4-HX\
+       1GWaTkjVkhDqVC3BWuyw5ftNFsSXYLv_Re4LjrXe04ICkg_pV36TFOukdEQIoW1s\
+       uz3QahuGyL59Xu9bJ9e4Fak4KI-WA-QmTzj3oMTpx0Y2KYPHZYe-NN_lCum6yMBS\
+       IBsS3RJXoYRqqTWH4ZY4MjkVCkWKST7Y-TUzroRJ-8Z2IBEmV_ggz1JcXfvkL4E5\
+       oMpNOHuO4xqvng7MFK6iecud-i3e94BckHfYmr7aYeOsf3X8KfQwrHMW3z0TRm9Z\
+       jRQb64y7fxCjgklRu3ClpAuPSmNn2-MtN2VH3DrSwoGGEr7t3HDFC5Rb0U4wheDa\
+       UMHrMwZSqDzcu_DCSGOv5-PK8asA",
+     "priv": "ow9QjhhV5ORaLbpMB3INQPLVmTl7F5tnPDUugwXey5Q"
+   }
+
+                 Figure 6: test-key-ml-dsa-44, JSON Web Key
+
+A.2.2.  ML-DSA-65 Test Key
+
+   The following key pair uses the ML-DSA-65 parameter set and is
+   referred to in this appendix as test-key-ml-dsa-65.  The 32-byte seed
+   from which the key pair is derived, in Base64:
+
+   UDNyKhTWCuNLXHxEthdQWNbuSouTeXiRK0xosHC3O5U=
+
+                     Figure 7: test-key-ml-dsa-65, seed
+
+   The 1952-byte public key, encoded as described in Section 7.2 of
+   [FIPS204], in Base64:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   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\
+   XfrnNrKlv4OsTU17dAg=
+
+                  Figure 8: test-key-ml-dsa-65, public key
+
+   The same key pair in PKCS #8 and SubjectPublicKeyInfo form:
+
+   -----BEGIN PRIVATE KEY-----
+   MDQCAQAwCwYJYIZIAWUDBAMSBCKAIFAzcioU1grjS1x8RLYXUFjW7kqLk3l4kStM
+   aLBwtzuV
+   -----END PRIVATE KEY-----
+
+                   Figure 9: test-key-ml-dsa-65, PKCS #8
+
+   -----BEGIN PUBLIC KEY-----
+   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
+   rE1Ne3QI
+   -----END PUBLIC KEY-----
+
+            Figure 10: test-key-ml-dsa-65, SubjectPublicKeyInfo
+
+   The same key pair as a JSON Web Key:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   {
+     "kty": "AKP",
+     "alg": "ML-DSA-65",
+     "kid": "test-key-ml-dsa-65",
+     "pub": "1U0-Ckh1uRZcW7IiQnaaMFyiiyNyicABlJ9k8UsrqaY2nRlhbHsmPsE9Cv\
+       h_JHjcLj1YB1KiSi8sD8l_lLPuePjMbl9_izN6pbHT3Zk7mn-1PQgy2WgJ4cLCH5\
+       S4mphR1lpiKFLnFIUjAplpfQQjxqE2QknOCdM6uuhRX1llf91o3HklII4w6lPW1W\
+       e3R4SB3qOkXZxupYG4yp27t58xEKrMXKO0Xc3iXS0-8dkZgSAkI9SMa54ypcwHbV\
+       89AOqRl2i4yueq40l2GEgK6kYFHLCyqMB-tfldlbk-pBvs6Jkkzw5qLO49Xn5tAw\
+       LtgooSy6zhBNgFosSiOfg5IjpNOgfEy58Nb-mf6ewSE3XD1lyIk_9r-FuU6W6Ezd\
+       Oxq2in7CJ7YzT_Itov5_1x8dffipspuweJzRprcbutFyXJSUMA2sIw5Eubg8xCCM\
+       L1SszpLVnwYdIWxL5hpzHc--3P1xQLlRnlxtByDs9HA27vEMPhX8QoxF8P_A6ueV\
+       M8aofJanMWOeHrHcEK5wZDRBaNHgZxQBA1wSA27RMBI1hW8nK8g_D5_i4idelzO9\
+       WdpSpTEdUm0Lgh3nu42KEeU5-3o3Rr1uungGizf_LyiB9OEfpqqvnN2db_8BMV1N\
+       CDRNErf1tkIZv3Nt1Teyp3cUhQNhqiF7v_REllfxgd8Exa57mxcMkyJ7ehiDPqS1\
+       yvDx3k_UNiGDIHa8TYpAE-7tuMTlhO74Tq8yKgBRixfgw1hXyLtUff0IY2waQgyo\
+       Q9JBta-wmgF3I5X8oCDT60_hBmYvTKf7jSjsTDl7ogyOcqvB4p6UcX9mD9BBxJYW\
+       LlSAT03XTm_dsu7rYo_VO_HLMlqmZKs8SxBf1lJV6F8_UJSCtvG-qR_APkBNhTDU\
+       S-dO97OMyP2bwpSQ1z7_9oiCdMgE31yP_a0B6CGeBoHGCwJDgU0865gRlRoDr3NA\
+       SGJELPl2jcgEJJzowZy8fPpfFIl58ZvOBkkQPwzw5t8QfsQX-TNjU6HWBzZgCNSX\
+       8-MfbavZv5_Kc4jzKsSUpREGkrp9nJ5tk2MyKjYufUob_6WzDRdmAYlJR-2qLRgM\
+       iWeDpir0VpZUUJe5mpp3m64ewwtIerSzzkd_tk8fTo9j00ZZNUTMDxFJGLaMD4iC\
+       1owW36WpiIBQmOGIINo2tXFLPtzhy8l0RxxtWI_HhdZNFnaTG5CLula0oCjDgn0t\
+       CTpYraUA1I2TQ7nzr9lBmMRKyBx0lHpcDisb5_pMD0oEPJhOarEDOirURwaFPwR3\
+       MEev75IMUHAkWqp_GG9PW8mNv2GNqUXU2GGjoVkC8FkNQF2xchN7xVbA_4mwxP3t\
+       U4vg8fTa5jOUHDLLttr_W3YdOMRKdsdxo5eqhcCuThLiUGr5JcFeISj9xS3xpXUV\
+       QFZAJI1TUJNvECTSAocUBhtKvioho9926T7Ouf9MBqy8VrBrjId3OY47HNbOFsrk\
+       Gv2_t-0_n9PahrTVOmzruC1SOh93A0kCVwNaI5BBuX3Jolf4eGmvypZOmfg9M-6j\
+       Dsu8pH533OF1LDwHtlAJn6EDoyOTBbi3I6P1WqsCMyA9_VrwKTuA-rVcBZIYeGFJ\
+       rnGM-_lxcxzON2xUOLruEHAfbFO9jcPAfMeIajCLlUiXFrzgShZ05YtLdGI-F9S3\
+       47wtpakVDf8Ce6n4aezbiYa9UDIpW7YPijUCmoPSIlT4_xTIb0RzJnQr5LiJtVvR\
+       bm5tJ5YMOfX1jaNmBBg7rmbCzq4pWpgamVMVctoQvLkAiNk7iluQpaCTGjQKfDLk\
+       73mbT-8zu349o-_dqlPtvBfIMMtcCXxpsOBjndAGLkYlPdW4ZpVtND9qPQO2eABi\
+       Zu90KgH5BswLD5vlarmTl06eQOLBIJM8GyE1noRnp217uVJ_O0YNjxLkFghQO96J\
+       jDtvOblvep4_xATlbij5j9JwPKVogz2G6kbj2RMBH6Bd5fc7DUoIaGfdS1EkCIng\
+       mRP8bB2pvAbrO5FOUI8KVHklg6g3Vbrye-th6HMYMezjcsmG3nL04HAIode5KzwR\
+       hHtkRrTYyd9UOnMqPSESZ3g1hfoK0yzfdLtmZbMdyRXcw1SMiugTje5T3c5b3TD8\
+       h1N0_8Ddw-ZpIxZvUePWwLkFLV8YiLBDKAVBJpZcwU7zDOBYgISt3m8dDW8pr63c\
+       kHdF0J4Xk7npfaU067IOobPTwjCXiitV4OsF9aptgbNLeT0vDc5FRAH_wdtubwtC\
+       XxWol8xY_obYc0bTJF3QQTBg8rrC5xyBW7Gf-OdVIU_dkiupSvYuiGsk9TDBeG7y\
+       UCcwaG-xZ9rfyT0fLnoF4ictBA11CQIcfE4TONTYlgaKPIcDdrq2fx3PB3QDZmnl\
+       GMDLLOzZ-cQP6fpgIXBwAj-C2pIptfqQ6gX6HhWv_nCe4Skn18gIvc23etUwJHak\
+       mEPoDeorqA3SE2Kgo1YcJYpwISWTr7FSEvueqi5iM2YiwM2TYWugUELGwt-whHx8\
+       0FcbGtz2HLUvjGnrtnXJlXxw8SObx-b1Eams1rrnKZ6U9-aDyAif_nAhg3PjwbNS\
+       sJmtgTpthNnauGwtgSJ3NlWDQh2xkLXfrnNrKlv4OsTU17dAg",
+     "priv": "UDNyKhTWCuNLXHxEthdQWNbuSouTeXiRK0xosHC3O5U"
+   }
+
+                Figure 11: test-key-ml-dsa-65, JSON Web Key
+
+A.2.3.  ML-DSA-87 Test Key
+
+   The following key pair uses the ML-DSA-87 parameter set and is
+   referred to in this appendix as test-key-ml-dsa-87.  The 32-byte seed
+   from which the key pair is derived, in Base64:
+
+   0IO940ljr/P08jNdPj2m5FicMkFrfasuaWd95K0Wj4s=
+
+                    Figure 12: test-key-ml-dsa-87, seed
+
+   The 2592-byte public key, encoded as described in Section 7.2 of
+   [FIPS204], in Base64:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   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
+
+                 Figure 13: test-key-ml-dsa-87, public key
+
+   The same key pair in PKCS #8 and SubjectPublicKeyInfo form:
+
+   -----BEGIN PRIVATE KEY-----
+   MDQCAQAwCwYJYIZIAWUDBAMTBCKAINCDveNJY6/z9PIzXT49puRYnDJBa32rLmln
+   feStFo+L
+   -----END PRIVATE KEY-----
+
+                   Figure 14: test-key-ml-dsa-87, PKCS #8
+
+   -----BEGIN PUBLIC KEY-----
+   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
+   p3RoyYGUcSwqXDgjwC3zIkrOWwYeXg==
+   -----END PUBLIC KEY-----
+
+            Figure 15: test-key-ml-dsa-87, SubjectPublicKeyInfo
+
+   The same key pair as a JSON Web Key:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   {
+     "kty": "AKP",
+     "alg": "ML-DSA-87",
+     "kid": "test-key-ml-dsa-87",
+     "pub": "xrzhAebvRTHrYnvLX1iU4uFaS66DQUPhWfP7CqGTGgjB_eQ-dxbWDGNTOG\
+       UT1fag92tg_uP1YB0adVlyrsbXKj1VLYf0gatwxAF3H0LpyeQnjz9e9MhenLt8IQ\
+       56vHIDgOaJQUMIgzt78gp71zDj_cfm6HtjWCE9kDyJrBBLV3J_VUnInY_G8_7cqT\
+       a-CQnkHB5JpegUUXwxGWkPIaABjaXbgeu5-2R0R49Li4AvQCSC3nt9xWFBr2drDz\
+       ZCxzUJISPAe6fOsSPrM_59Sm9PWDosugixYxDpj_Yk7CY1WKARZbYGt3I6AsgAma\
+       I9SvWlUmA1tqPwzc75JdH5ohU6zHx6-1p9lok4-OpxCu8pcfZ-f_tEomFYn9EvJ1\
+       bR6OWMXHmcxDQUpjc4x-uf1sN8Vn7ZhL7S_PsBcBLuBWRD9OVjYhfhHzRzuI5fTv\
+       CWpfps7JFKwuZzK27q7bZD90hCFbNnXF-aQaiX_PdYKTex8AlzPpUXZzrxq7wGaK\
+       mX2VKpw7Jb-xecfjXwhwJOLZva_fCzYROk1znSnwjj_H2XOWRuuIWy9RSnqJuQGO\
+       fAtI5gvy8G1r3qUSXKcMuLDBL3R7U1QDJFFGxazg5Vg3Om5UiHYY6QVJyM7UeQ8u\
+       xVOkn2WD_XFgh1Sep6sb_2t6VFmuSJVac2VL5wmivJU-UIEv0_lMCjo-3dVsTRXa\
+       y4LMwOLzMNnC_GhmwX1_G0o7EnM-UbNipr4wGxBq5wcdy72WanqVVR27u-r7165h\
+       okdkncefpXNPj27t5r7341RPfCt8a6n409yvguUQ0mpGqAEKwzzXwVvFiTKOsBVO\
+       JKCbZLPTt7nCqvISbXTUBD20Aeb2fkaTLSFynD4vcf_sOoswT0BSSq7lqTOgGIfE\
+       LWER8KOjj8ig9z8bck9iSiWS-hLMlzqBl61LlZAcpe5uKV3zw6NP_er8m0dAENqe\
+       JOV4FLqK1Zd5_Yh5YtJjFNpdF4DH_r1P_96_EX3yWDF6_uJrkNQL1yT9BLizSoXH\
+       3jHh1sPzoO3erzefUqVmdrWvZbD6wnGcPTm9jPaCTCqQbgK-m92fq7qDga13wNaa\
+       0y6ESL7QO8MpWX4bsrHluO3iSGhKi4auzwk8-lklBE_ZgclE0lJ8A5eKnZkPBQxg\
+       hgyccYoSvsCTbkh9T5ESQNXh4GJHJfmcLhtR04XLAEYohgcHpDtYXcseZwPbNe7U\
+       hYQp0VvvqjliqNf8cvcuLsxjxQjkXoZGNRx_uJLCZz-Xzs8mk6LZ077cSLdhlSlU\
+       KmPje29fslmVW1-sA9zB_yusdCM3KjmZx4w2FdyvXDWPR62hHTEBoSFN32yarghl\
+       zp1rdQ2piYlwuyjNnXROFqWYwzCyGyg21bLEsj1R5HB7cE9ZU1MDnN8GaTzwQjNt\
+       9uNZtVfxvc2bsFI8pWulBi6kKSJqH0ctCAoQvod9-TCahks9cR5FvP092C3jvLyh\
+       vBt0q3N186SXeuKjkD2gk13tTG73I8BpqbJbLzRRoBN5YGTD6tSlIyv020X3AAZm\
+       Xs7uHfMBoNQ6zM7PgMDLihir9S85so2crs31b5GU-jOV7OPbMh1D1OwYDBuNZjzQ\
+       9DpCGZaRW7LEZupi5QDr4XvZx9b3KnrMKmZDbI3TD2XjML6COKIqbmTVSqTQKNRS\
+       nZI14dCKPZc3yJMT44iCANtKd-bl5sH5vz1XrAcmhaedKmB5wF37ecBhASZNZ4fr\
+       b0XiGjql38OEYm1XtJdRlIvzyd68MJrkUH6tGcdip22iWMnIz_1oQAO5NPbk401U\
+       fAPE9wLrbc5tdAHKzpg_2irrIhAUvvlN4eGIY3XKnTYpArQCQIzKrVIKzBDkUu6w\
+       g6WBsSI0McFhqek31xIcff9oLtmv3F5c6ZAaAo6lbcalYPoBG-e4aazVLC5ESmqI\
+       cKxuQT6UXvEzLddaJA6n1pw3gW5cIMpKFUiOPoGdKEwYDf9JrR7iZHqddpwtIDPj\
+       OdL3uQgYGnvEq9m_nP4LUhofCtC7Ma05HGRP-fkkSAsHhZPoOlQIhz2fpN-jVGOs\
+       arSGTypg2yRJaE1CmWhhWkEee1BLRmNKePPIaPL-2KQ1JXoj4dBDzdVgm4_3z5w1\
+       nnISmrkP7qFfOx4MRjt3oU15DhBq5GCOjTb3sDTqT351CzpHPvKjiFNtgKzFz_rf\
+       TEsLFqHHNVnbHVN4QQx5KcOIA_HIJY1W_zn7d5VBeUvrahaX-NaAnICJQuC3Pl9p\
+       1RpM3nddWFXTkcDkqyHf2msbLSMAQPcjGcz71g09VNw8AhDICXoboyi3xvp9kbyM\
+       eQ8DzSHFL3zqNERAE9GODB5XofEcbJ6mdsMWZZNwAsUsBU7A4idjA4kNPy-_DB02\
+       aSEtIlRvZZaoXC0vSlqa0olJeBOKWWqQMuuS6-6qP4WkUUo4JTn1GNVhfdhqN50v\
+       MO7SecBU8xOk5deWUg1A4MOeh6joLxgrDBr93XkDwHfqrIo36lNgOW2Su1KfdmZy\
+       Su_KqGLUDNNLuN3JOePQ3is1-y869dux9OPJeRz8nB_4xcRRtw2V44Rpy2O31jZ8\
+       WXs9ag-GIMwIdtGgqjqmvIdcLdrC4ciZwikfnb8O1fUdnCHTmPLIb9KyVxcFyX4I\
+       Y6HPASwPr5HbQjUpyKvHKyvctsb6TyL4ea0B4UHeAcT-1rbBTm-39pg-jpPRZx8d\
+       1QYF54MAeiUHZhmIBaZhHvo7lJuj_F8bSFb_pqQkE725Ru6B8ul6U8Fg-6AMRDbh\
+       W9R4li-NI5-QLSdXz9ft4c33XAoJMt8bDF5OfEBgfgu5Gapv7zLFxL3YE_OEht09\
+       GRXbxliEj6a66RxSYQr9zKMDxK8SUIGaN60IKoSICwX1QKoCqQy3oFGHYmgK9UcV\
+       OZaPEXBWbt0yRgc9FcVAvKZrumzFAurdII0i6rH1UTBXCR7dYLZ0zeMDtDRGsnzN\
+       _j9uijAZAsGPbfSM1V-idy2-6lLOaXrbQNcBHxRvOZCV-PMwl35_fXxWwaYFdBWU\
+       mu0aXqqMC6ZPnfuap3rMZnnINsL1q7foFxrjy9YTZhaSsFchvzM1ge3NZQjJAsOP\
+       tsHgzV5-DJ9hMfgEqaXPz49dwlLnzbSO9HZQ3uCbCoII7s-4ZiB8FXZSDbW1QYIL\
+       2TfM6e5zZCC2D2t-kVa6UCRR6zABT3KOec6qH4X2q7P5sOQZ3SU2T9aM_rlYkzU2\
+       XcU3sSg41_M5J6N60lw-OAiazUVt0j3GNE5FfBudoUiuPEbgskLFq9j7EgehR7s_\
+       hkp13OXLTZ-mo_Uk22o9QL8YCf2VxjP_pKff3ZJNdnT9vdKWO-knJFli2JP_48gY\
+       ufCNeeNLzVhe_hXJwqYchMntvKoEk-kkn-0uI2DsXPh8eSsnYIlL_7P7a_SYnPDN\
+       vvMA2x68eqR9SPU_EbretzsBwJ4RW5NN1gLCe_ti2ndGjJgZRxLCpcOCPALfMiSs\
+       5bBh5e",
+     "priv": "0IO940ljr_P08jNdPj2m5FicMkFrfasuaWd95K0Wj4s"
+   }
+
+                Figure 16: test-key-ml-dsa-87, JSON Web Key
+
+A.3.  Test Cases
+
+   Each test case covers the same components of Appendix A.1, using the
+   alg signature parameter to name the algorithm.
+
+A.3.1.  Signing a Request Using ml-dsa-44
+
+   This example uses the ml-dsa-44 algorithm and the key test-key-ml-
+   dsa-44.  The corresponding signature base is:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   "date": Tue, 20 Apr 2021 02:07:55 GMT
+   "@method": POST
+   "@path": /foo
+   "@authority": example.com
+   "content-type": application/json
+   "content-length": 18
+   "@signature-params": ("date" "@method" "@path" "@authority" "content\
+   -type" "content-length");created=1618884473;keyid="test-key-ml-dsa-4\
+   4";alg="ml-dsa-44"
+
+                    Figure 17: Signature base, ml-dsa-44
+
+   This results in the following Signature-Input and Signature fields
+   being added to the message under the label sig-mldsa:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   Signature-Input: sig-mldsa=("date" "@method" "@path" "@authority" "c\
+   ontent-type" "content-length");created=1618884473;keyid="test-key-ml\
+   -dsa-44";alg="ml-dsa-44"
+   Signature: sig-mldsa=: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:
+
+                   Figure 18: Signature fields, ml-dsa-44
+
+A.3.2.  Signing a Request Using ml-dsa-65
+
+   This example uses the ml-dsa-65 algorithm and the key test-key-ml-
+   dsa-65.  The corresponding signature base is:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   "date": Tue, 20 Apr 2021 02:07:55 GMT
+   "@method": POST
+   "@path": /foo
+   "@authority": example.com
+   "content-type": application/json
+   "content-length": 18
+   "@signature-params": ("date" "@method" "@path" "@authority" "content\
+   -type" "content-length");created=1618884473;keyid="test-key-ml-dsa-6\
+   5";alg="ml-dsa-65"
+
+                    Figure 19: Signature base, ml-dsa-65
+
+   This results in the following Signature-Input and Signature fields
+   being added to the message under the label sig-mldsa:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   Signature-Input: sig-mldsa=("date" "@method" "@path" "@authority" "c\
+   ontent-type" "content-length");created=1618884473;keyid="test-key-ml\
+   -dsa-65";alg="ml-dsa-65"
+   Signature: sig-mldsa=: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\
+   AAAAAABg0QGB0g:
+
+                   Figure 20: Signature fields, ml-dsa-65
+
+A.3.3.  Signing a Request Using ml-dsa-87
+
+   This example uses the ml-dsa-87 algorithm and the key test-key-ml-
+   dsa-87.  The corresponding signature base is:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   "date": Tue, 20 Apr 2021 02:07:55 GMT
+   "@method": POST
+   "@path": /foo
+   "@authority": example.com
+   "content-type": application/json
+   "content-length": 18
+   "@signature-params": ("date" "@method" "@path" "@authority" "content\
+   -type" "content-length");created=1618884473;keyid="test-key-ml-dsa-8\
+   7";alg="ml-dsa-87"
+
+                    Figure 21: Signature base, ml-dsa-87
+
+   This results in the following Signature-Input and Signature fields
+   being added to the message under the label sig-mldsa:
+
+   NOTE: '\' line wrapping per RFC 8792
+
+   Signature-Input: sig-mldsa=("date" "@method" "@path" "@authority" "c\
+   ontent-type" "content-length");created=1618884473;keyid="test-key-ml\
+   -dsa-87";alg="ml-dsa-87"
+   Signature: sig-mldsa=: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\
+   QrNQ==:
+
+                   Figure 22: Signature fields, ml-dsa-87
+
+Acknowledgments
+
+   The algorithm identifiers registered by this document are the same as
+   those used in earlier work by Soatok Dreamseeker [HTTPSIG-PQ].
+
+Author's Address
+
+   Filip Skokan
+   Okta
+   Email: panva.ip@gmail.com

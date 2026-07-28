@@ -1,0 +1,97 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-07-28T00:39:56.332616+00:00",
+  "repo": "panva/draft-httpbis-message-signatures-ml-dsa",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOTjX08872aZc7",
+      "title": "ML-DSA in HTTP Message Signatures",
+      "url": "https://github.com/panva/draft-httpbis-message-signatures-ml-dsa/pull/1",
+      "state": "MERGED",
+      "author": "panva",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "cc @jricher as discussed, opening as PR instead of just a push for review\r\n\r\n~[rendered draft](https://panva.github.io/draft-httpbis-message-signatures-ml-dsa/first-draft-proposal/draft-skokan-httpbis-message-signatures-ml-dsa.html)~",
+      "createdAt": "2026-07-25T22:13:21Z",
+      "updatedAt": "2026-07-26T18:18:03Z",
+      "baseRepository": "panva/draft-httpbis-message-signatures-ml-dsa",
+      "baseRefName": "main",
+      "baseRefOid": "ec09c2a69641f2b774d8c84e38752cd47264b929",
+      "headRepository": "panva/draft-httpbis-message-signatures-ml-dsa",
+      "headRefName": "first-draft-proposal",
+      "headRefOid": "c3639de3bf3653167dfe8fb409928f37777d52e2",
+      "closedAt": "2026-07-26T18:17:36Z",
+      "mergedAt": "2026-07-26T18:17:36Z",
+      "mergedBy": "panva",
+      "mergeCommit": {
+        "oid": "4374e1a95ffadb5710dfc798f34289a0aa4d81a1"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOTjX0888AAAABHQjWHQ",
+          "commit": {
+            "abbreviatedOid": "c3639de"
+          },
+          "author": "jricher",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Looks pretty solid to me, thanks for pulling this together!",
+          "createdAt": "2026-07-26T15:50:29Z",
+          "updatedAt": "2026-07-26T15:50:29Z",
+          "comments": []
+        }
+      ]
+    }
+  ]
+}

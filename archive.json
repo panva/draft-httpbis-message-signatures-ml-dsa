@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-28T00:39:56.332616+00:00",
+  "timestamp": "2026-07-30T00:38:11.370366+00:00",
   "repo": "panva/draft-httpbis-message-signatures-ml-dsa",
   "labels": [
     {
@@ -49,7 +49,32 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 2,
+      "id": "I_kwDOTjX0888AAAABKdQbLQ",
+      "title": "IANA registration for ml-dsa-*",
+      "url": "https://github.com/panva/draft-httpbis-message-signatures-ml-dsa/issues/2",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Both this repository and [c2sp httpsig-pq](https://github.com/C2SP/C2SP/blob/main/httpsig-pq.md#iana-considerations) have IANA considerations for ml-dsa-* algorithms. Both claims \"this document\" should be the reference. This new draft mentions c2sp as the initial source for the algorithms\n\nAn [earlier version](https://web.archive.org/web/20260715193335/https://www.iana.org/assignments/http-message-signature/http-message-signature.xhtml) of the IANA registry cites c2sp as the authority here.\n\nThat might be an issue for the HTTP mailing list, but i'd like to understand what's the path forward, or if there has been discussion to replace c2sp document with this one down the line, and what are the coordination plans.",
+      "createdAt": "2026-07-28T08:51:26Z",
+      "updatedAt": "2026-07-28T08:55:43Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "panva",
+          "authorAssociation": "OWNER",
+          "body": "> That might be an issue for the HTTP mailing list, but i'd like to understand what's the path forward, or if there has been discussion to replace c2sp document with this one down the line, and what are the coordination plans.\n\nI believe this is best left to @jricher to explain.\n\nAlso note that this draft has not been posted yet pending ongoing discussions.",
+          "createdAt": "2026-07-28T08:53:46Z",
+          "updatedAt": "2026-07-28T08:55:43Z"
+        }
+      ]
+    }
+  ],
   "pulls": [
     {
       "number": 1,

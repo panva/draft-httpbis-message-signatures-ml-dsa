@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-30T00:38:11.370366+00:00",
+  "timestamp": "2026-08-02T00:43:36.791687+00:00",
   "repo": "panva/draft-httpbis-message-signatures-ml-dsa",
   "labels": [
     {
@@ -62,7 +62,7 @@
       "labels": [],
       "body": "Both this repository and [c2sp httpsig-pq](https://github.com/C2SP/C2SP/blob/main/httpsig-pq.md#iana-considerations) have IANA considerations for ml-dsa-* algorithms. Both claims \"this document\" should be the reference. This new draft mentions c2sp as the initial source for the algorithms\n\nAn [earlier version](https://web.archive.org/web/20260715193335/https://www.iana.org/assignments/http-message-signature/http-message-signature.xhtml) of the IANA registry cites c2sp as the authority here.\n\nThat might be an issue for the HTTP mailing list, but i'd like to understand what's the path forward, or if there has been discussion to replace c2sp document with this one down the line, and what are the coordination plans.",
       "createdAt": "2026-07-28T08:51:26Z",
-      "updatedAt": "2026-07-28T08:55:43Z",
+      "updatedAt": "2026-07-31T20:51:24Z",
       "closedAt": null,
       "comments": [
         {
@@ -71,6 +71,13 @@
           "body": "> That might be an issue for the HTTP mailing list, but i'd like to understand what's the path forward, or if there has been discussion to replace c2sp document with this one down the line, and what are the coordination plans.\n\nI believe this is best left to @jricher to explain.\n\nAlso note that this draft has not been posted yet pending ongoing discussions.",
           "createdAt": "2026-07-28T08:53:46Z",
           "updatedAt": "2026-07-28T08:55:43Z"
+        },
+        {
+          "author": "jricher",
+          "authorAssociation": "COLLABORATOR",
+          "body": "The C2SP references were added in error and have been since removed, as you can see. Citing the erroneous registration as proof is not in fact proof of authority. There is an ongoing discussion of whether a reference to a C2SP reference sufficiently meets the threshold for registration here. The document in this repository is targeted to an IETF artifact, which is a publication path known to meet that threshold. The authors of the C2SP document have been directly invited to participate in the IETF process but have directly declined.\n\nIf the code points are registered to compatible algorithms, is it actually a problem if the registry does not directly cite C2SP as its source?",
+          "createdAt": "2026-07-31T20:51:24Z",
+          "updatedAt": "2026-07-31T20:51:24Z"
         }
       ]
     }
